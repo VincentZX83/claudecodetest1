@@ -150,6 +150,8 @@ TEST(RingBufferTest, ThroughputSmoke) {
 
     auto end = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    // Guard against divide-by-zero on very fast hardware (<1ms)
+    if (ms == 0) ms = 1;
     double ops_per_sec = num_ops / (ms / 1000.0);
 
     std::cout << "[PERF] RingBuffer SPSC: " << num_ops << " ops in "
