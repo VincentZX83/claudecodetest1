@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <cassert>
 
 // ============================================================
 // Simulated Memory-Mapped Register Base Addresses
@@ -89,16 +90,13 @@ enum class GPIOPull : uint32_t {
 // ============================================================
 class GPIOPin {
 public:
-    // [HUMAN FIX 2025-07-08]: static_assert on function parameter is
-    // ill-formed in C++ — pin_number is never a constant expression.
-    // Replaced with runtime assert. For compile-time checking, use
-    // template<unsigned N> + std::integral_constant pattern.
+    // [HUMAN FIX 2025-07-08]: Replaced broken static_assert with runtime assert.
+    // In NDEBUG builds (production), assert compiles to a no-op and the
+    // caller bears responsibility for passing a valid pin (0-15).
     GPIOPin(uint8_t pin_number) noexcept
         : pin_(pin_number)
     {
-        // Runtime validation that pin is 0–15
-        // assert(pin_number <= 15) — omitted for header-only simplicity;
-        // caller is responsible for passing a valid pin number
+        assert(pin_number <= 15 && "STM32 GPIO pin must be 0-15");
     }
 
     [[nodiscard]] constexpr uint8_t value() const noexcept { return pin_; }
